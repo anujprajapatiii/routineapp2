@@ -1,7 +1,7 @@
-# Routinery — a routine & habit tracker
+# Stream — a routine & habit tracker
 
-A [Routinery](https://www.routinery.app/)-style routine/habit tracker built as a
-full web app with user accounts and a persistent Postgres database.
+Stream is a [Routinery](https://www.routinery.app/)-style routine/habit tracker
+built as a full web app with user accounts and a persistent Postgres database.
 
 Sign up, build routines out of timed tasks, and **run** a routine with a
 full-screen countdown timer (progress ring, pause / skip / restart / stop, and a
@@ -21,7 +21,11 @@ completion screen). All data is scoped per-user with Postgres Row Level Security
   (no-op with a friendly message if the provider isn't configured).
 - Create, edit, reorder (▲/▼), and delete routines. Each routine has a name,
   optional time-of-day, a color, and an ordered list of tasks.
-- Each task has a name and a duration (entered as minutes + seconds).
+- Each task has a name and a duration — add via quick presets (5 / 10 / 20 min)
+  or a custom minutes + seconds input.
+- Each routine picks one of five cool **ocean color themes** (Deep, Lagoon,
+  Kelp, Reef, Tide); the immersive timer renders fully in that theme for both
+  light and dark mode.
 - **Run** a routine: full-screen timer that steps through each task with a
   countdown ring, an overall progress bar, and Pause / Skip / Restart / Stop
   controls, ending on a "complete" screen.

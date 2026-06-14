@@ -5,16 +5,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import GlassKit from "@/lib/liquid-glass";
 import { formatClock, formatDuration } from "@/lib/format";
+import { getTheme } from "@/lib/themes";
 import type { RoutineWithTasks } from "@/lib/types";
+import { Play, Pause, SkipForward, Restart, Close } from "@/components/icons";
 
 export default function Runner({ routine }: { routine: RoutineWithTasks }) {
   const router = useRouter();
   const tasks = routine.tasks;
+  const theme = getTheme(routine.color);
 
   const [index, setIndex] = useState(0);
   const [remaining, setRemaining] = useState(tasks[0]?.duration ?? 0);
   const [running, setRunning] = useState(true);
   const [done, setDone] = useState(false);
+  const [mode, setMode] = useState<"light" | "dark">("dark");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const current = tasks[index];
@@ -31,6 +35,19 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
     },
     [tasks],
   );
+
+  // Track the active light/dark theme so the immersive backdrop matches it.
+  useEffect(() => {
+    const read = () =>
+      setMode(
+        document.documentElement.getAttribute("data-theme") === "light"
+          ? "light"
+          : "dark",
+      );
+    read();
+    const unsub = GlassKit.theme.subscribe(read);
+    return unsub;
+  }, []);
 
   // Countdown ticker.
   useEffect(() => {
@@ -68,19 +85,22 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
     ? ((current.duration - remaining) / current.duration) * 100
     : 0;
 
-  const tint = `radial-gradient(120% 90% at 50% 0%, ${routine.color}40 0%, transparent 58%)`;
+  const bg = mode === "light" ? theme.gradLight : theme.gradDark;
+  const ring = "rgba(236,250,255,0.95)";
 
   if (done) {
     return (
       <div
-        className="flex min-h-screen flex-col items-center justify-center px-6 text-center"
-        style={{ background: tint }}
+        className="flex min-h-screen flex-col items-center justify-center px-6 text-center text-white"
+        style={{ background: bg }}
       >
-        <div className="mb-4 text-6xl">🎉</div>
-        <h1 className="font-display text-3xl font-bold text-ink">
-          Routine complete!
+        <p className="text-xs uppercase tracking-[0.25em] text-white/60">
+          {theme.name}
+        </p>
+        <h1 className="font-display mt-3 text-3xl font-bold">
+          Routine complete
         </h1>
-        <p className="text-soft mt-2">
+        <p className="mt-2 text-white/75">
           You finished “{routine.name}” — {tasks.length}{" "}
           {tasks.length === 1 ? "task" : "tasks"},{" "}
           {formatDuration(totalSeconds)}.
@@ -93,14 +113,14 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
               setRemaining(tasks[0]?.duration ?? 0);
               setRunning(true);
             }}
-            className="btn btn-inline glass inline-flex"
+            className="btn btn-inline glass inline-flex text-white"
             data-glass
           >
-            ↻ Run again
+            Run again
           </button>
           <Link
             href="/routines"
-            className="btn btn-ghost btn-inline glass inline-flex"
+            className="btn btn-ghost btn-inline glass inline-flex text-white"
             data-glass
           >
             Done
@@ -112,41 +132,39 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
 
   return (
     <div
-      className="flex min-h-screen flex-col px-6 py-8"
-      style={{ background: tint }}
+      className="flex min-h-screen flex-col px-6 py-8 text-white"
+      style={{ background: bg }}
     >
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => router.push("/routines")}
-          className="text-soft text-sm transition hover:text-ink"
+          aria-label="Stop"
+          className="flex items-center gap-1.5 text-sm text-white/70 transition hover:text-white"
         >
-          ✕ Stop
+          <Close className="h-4 w-4" /> Stop
         </button>
-        <span className="text-soft text-sm font-medium">
+        <span className="text-sm font-medium text-white/70">
           {index + 1} / {tasks.length}
         </span>
       </div>
 
       {/* Overall progress */}
       <div className="mt-4">
-        <div
-          className="h-1.5 w-full overflow-hidden rounded-full"
-          style={{ background: "var(--glass-bg)" }}
-        >
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/15">
           <div
             className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${overallPct}%`, backgroundColor: routine.color }}
+            style={{ width: `${overallPct}%`, background: ring }}
           />
         </div>
       </div>
 
       {/* Main timer */}
       <div className="flex flex-1 flex-col items-center justify-center">
-        <p className="text-faint mb-2 text-sm uppercase tracking-widest">
+        <p className="mb-2 text-sm uppercase tracking-widest text-white/55">
           {routine.name}
         </p>
-        <h1 className="font-display mb-8 max-w-md text-center text-3xl font-bold text-ink">
+        <h1 className="font-display mb-8 max-w-md text-center text-3xl font-bold">
           {current?.name}
         </h1>
 
@@ -157,7 +175,7 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
               cy="50"
               r="45"
               fill="none"
-              stroke="rgba(128,128,128,0.22)"
+              stroke="rgba(255,255,255,0.16)"
               strokeWidth="6"
             />
             <circle
@@ -165,7 +183,7 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
               cy="50"
               r="45"
               fill="none"
-              stroke={routine.color}
+              stroke={ring}
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 45}
@@ -173,13 +191,13 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
               style={{ transition: "stroke-dashoffset 0.3s linear" }}
             />
           </svg>
-          <span className="font-display absolute text-5xl font-bold tabular-nums text-ink">
+          <span className="font-display absolute text-5xl font-bold tabular-nums">
             {formatClock(remaining)}
           </span>
         </div>
 
         {tasks[index + 1] && (
-          <p className="text-faint mt-8 text-sm">
+          <p className="mt-8 text-sm text-white/55">
             Up next: {tasks[index + 1].name}
           </p>
         )}
@@ -189,28 +207,32 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
       <div className="flex items-center justify-center gap-4 pb-6">
         <button
           onClick={() => setRemaining(current?.duration ?? 0)}
-          className="glass glass-icon h-14 w-14 text-lg"
+          className="glass glass-icon h-14 w-14 text-white"
           aria-label="Restart task"
           data-glass
         >
-          ↺
+          <Restart className="h-5 w-5" />
         </button>
         <button
           onClick={() => setRunning((r) => !r)}
-          className="glass flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold text-white"
-          style={{ backgroundColor: routine.color }}
+          className="glass flex h-20 w-20 items-center justify-center rounded-full text-white"
+          style={{ backgroundColor: theme.accent }}
           aria-label={running ? "Pause" : "Resume"}
           data-glass
         >
-          {running ? "❚❚" : "▶"}
+          {running ? (
+            <Pause className="h-7 w-7" />
+          ) : (
+            <Play className="ml-0.5 h-7 w-7" />
+          )}
         </button>
         <button
           onClick={() => goToTask(index + 1)}
-          className="glass glass-icon h-14 w-14 text-lg"
+          className="glass glass-icon h-14 w-14 text-white"
           aria-label="Skip task"
           data-glass
         >
-          ⏭
+          <SkipForward className="h-5 w-5" />
         </button>
       </div>
     </div>

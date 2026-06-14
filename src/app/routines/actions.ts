@@ -44,8 +44,7 @@ export async function saveRoutine(formData: FormData) {
 
   const id = String(formData.get("id") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
-  const timeOfDay = String(formData.get("time_of_day") ?? "").trim();
-  const color = String(formData.get("color") ?? "#6366f1").trim();
+  const color = String(formData.get("color") ?? "lagoon").trim();
   const tasks = parseTasks(String(formData.get("tasks") ?? "[]"));
 
   if (!name) {
@@ -59,7 +58,6 @@ export async function saveRoutine(formData: FormData) {
       .from("routines")
       .update({
         name,
-        time_of_day: timeOfDay || null,
         color,
         updated_at: new Date().toISOString(),
       })
@@ -85,7 +83,6 @@ export async function saveRoutine(formData: FormData) {
       .insert({
         user_id: user.id,
         name,
-        time_of_day: timeOfDay || null,
         color,
         position: count ?? 0,
       })

@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatDuration } from "@/lib/format";
+import { getTheme } from "@/lib/themes";
 import type { RoutineWithTasks } from "@/lib/types";
+import { ChevronUp, ChevronDown } from "@/components/icons";
 import { deleteRoutine, moveRoutine } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -26,10 +28,10 @@ export default async function RoutinesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 pb-28 pt-8">
+    <main className="mx-auto max-w-2xl px-4 pb-16 pt-8">
       <header className="rise mb-8 flex items-end justify-between gap-3">
         <div>
-          <div className="eyebrow">Routinery</div>
+          <div className="eyebrow">Stream</div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-ink">
             My Routines
           </h1>
@@ -44,7 +46,6 @@ export default async function RoutinesPage() {
 
       {routines.length === 0 ? (
         <div className="card rise p-10 text-center">
-          <div className="mb-2 text-5xl">🌅</div>
           <h2 className="font-display text-lg font-semibold text-ink">
             No routines yet
           </h2>
@@ -54,118 +55,114 @@ export default async function RoutinesPage() {
           </p>
           <Link
             href="/routines/new"
-            className="btn btn-inline glass mt-6 inline-flex"
+            className="btn glass mt-6 inline-flex w-full justify-center"
             data-glass
           >
-            + New routine
+            New routine
           </Link>
         </div>
       ) : (
-        <ul className="space-y-3.5">
-          {routines.map((routine, index) => {
-            const total = routine.tasks.reduce((sum, t) => sum + t.duration, 0);
-            return (
-              <li key={routine.id} className="card rise p-4">
-                <div className="flex items-start gap-3">
-                  <span
-                    className="mt-1 h-11 w-1.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: routine.color }}
-                    aria-hidden
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
+        <>
+          <ul className="space-y-3.5">
+            {routines.map((routine, index) => {
+              const total = routine.tasks.reduce(
+                (sum, t) => sum + t.duration,
+                0,
+              );
+              const theme = getTheme(routine.color);
+              return (
+                <li key={routine.id} className="card rise p-4">
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="mt-1 h-11 w-1.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: theme.accent }}
+                      aria-hidden
+                    />
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-display truncate text-base font-semibold text-ink">
                         {routine.name}
                       </h3>
-                      {routine.time_of_day && (
-                        <span className="glass text-soft rounded-full px-2.5 py-0.5 text-xs">
-                          {routine.time_of_day}
-                        </span>
-                      )}
+                      <p className="text-faint mt-0.5 text-sm">
+                        {routine.tasks.length}{" "}
+                        {routine.tasks.length === 1 ? "task" : "tasks"} ·{" "}
+                        {formatDuration(total)} · {theme.name}
+                      </p>
                     </div>
-                    <p className="text-faint mt-0.5 text-sm">
-                      {routine.tasks.length}{" "}
-                      {routine.tasks.length === 1 ? "task" : "tasks"} ·{" "}
-                      {formatDuration(total)}
-                    </p>
+
+                    <div className="flex flex-col items-center gap-1.5">
+                      <form action={moveRoutine}>
+                        <input type="hidden" name="id" value={routine.id} />
+                        <input type="hidden" name="direction" value="up" />
+                        <button
+                          type="submit"
+                          disabled={index === 0}
+                          aria-label="Move up"
+                          className="glass glass-icon h-7 w-7 disabled:opacity-25"
+                          data-glass
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                      </form>
+                      <form action={moveRoutine}>
+                        <input type="hidden" name="id" value={routine.id} />
+                        <input type="hidden" name="direction" value="down" />
+                        <button
+                          type="submit"
+                          disabled={index === routines.length - 1}
+                          aria-label="Move down"
+                          className="glass glass-icon h-7 w-7 disabled:opacity-25"
+                          data-glass
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </form>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col items-center gap-1.5">
-                    <form action={moveRoutine}>
-                      <input type="hidden" name="id" value={routine.id} />
-                      <input type="hidden" name="direction" value="up" />
-                      <button
-                        type="submit"
-                        disabled={index === 0}
-                        aria-label="Move up"
-                        className="glass glass-icon h-7 w-7 text-xs disabled:opacity-25"
-                        data-glass
-                      >
-                        ▲
-                      </button>
-                    </form>
-                    <form action={moveRoutine}>
-                      <input type="hidden" name="id" value={routine.id} />
-                      <input type="hidden" name="direction" value="down" />
-                      <button
-                        type="submit"
-                        disabled={index === routines.length - 1}
-                        aria-label="Move down"
-                        className="glass glass-icon h-7 w-7 text-xs disabled:opacity-25"
-                        data-glass
-                      >
-                        ▼
-                      </button>
-                    </form>
-                  </div>
-                </div>
-
-                <div className="mt-3.5 flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/routines/${routine.id}/run`}
-                    className={`btn btn-inline glass inline-flex ${
-                      routine.tasks.length === 0
-                        ? "pointer-events-none opacity-50"
-                        : ""
-                    }`}
-                    data-glass
-                    aria-disabled={routine.tasks.length === 0}
-                  >
-                    ▶ Start
-                  </Link>
-                  <Link
-                    href={`/routines/${routine.id}/edit`}
-                    className="btn btn-ghost btn-inline glass inline-flex"
-                    data-glass
-                  >
-                    Edit
-                  </Link>
-                  <form action={deleteRoutine} className="ml-auto">
-                    <input type="hidden" name="id" value={routine.id} />
-                    <button
-                      type="submit"
-                      className="text-faint px-2 py-1 text-sm transition hover:text-ink"
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/routines/${routine.id}/run`}
+                      className={`btn btn-inline glass inline-flex ${
+                        routine.tasks.length === 0
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }`}
+                      data-glass
+                      aria-disabled={routine.tasks.length === 0}
                     >
-                      Delete
-                    </button>
-                  </form>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                      Start
+                    </Link>
+                    <Link
+                      href={`/routines/${routine.id}/edit`}
+                      className="btn btn-ghost btn-inline glass inline-flex"
+                      data-glass
+                    >
+                      Edit
+                    </Link>
+                    <form action={deleteRoutine} className="ml-auto">
+                      <input type="hidden" name="id" value={routine.id} />
+                      <button
+                        type="submit"
+                        className="text-faint px-2 py-1 text-sm transition hover:text-ink"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-6 flex justify-center px-4">
-        <Link
-          href="/routines/new"
-          className="btn glass r-pill pointer-events-auto inline-flex w-auto px-7"
-          data-glass
-          data-float
-        >
-          + New routine
-        </Link>
-      </div>
+          <Link
+            href="/routines/new"
+            className="btn glass mt-5 inline-flex w-full justify-center"
+            data-glass
+          >
+            New routine
+          </Link>
+        </>
+      )}
     </main>
   );
 }

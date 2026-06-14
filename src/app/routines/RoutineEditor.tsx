@@ -3,23 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDuration } from "@/lib/format";
+import { THEME_LIST, getTheme, type ThemeKey } from "@/lib/themes";
 import type { RoutineWithTasks } from "@/lib/types";
+import { ChevronUp, ChevronDown, Close } from "@/components/icons";
 import { saveRoutine } from "./actions";
 
-// Higher-contrast, accessible hues — each reads clearly against the glass
-// backdrop in both themes and carries white text on the run/play button.
-const COLORS = [
-  "#4f46e5", // indigo
-  "#db2777", // pink
-  "#ea580c", // orange
-  "#059669", // emerald
-  "#2563eb", // blue
-  "#dc2626", // red
-  "#7c3aed", // violet
-  "#0d9488", // teal
-];
-
 type DraftTask = { name: string; duration: number };
+
+const QUICK_MINUTES = [5, 10, 20];
 
 export default function RoutineEditor({
   routine,
@@ -28,8 +19,7 @@ export default function RoutineEditor({
 }) {
   const router = useRouter();
   const [name, setName] = useState(routine?.name ?? "");
-  const [timeOfDay, setTimeOfDay] = useState(routine?.time_of_day ?? "");
-  const [color, setColor] = useState(routine?.color ?? COLORS[0]);
+  const [themeKey, setThemeKey] = useState<ThemeKey>(getTheme(routine?.color).key);
   const [tasks, setTasks] = useState<DraftTask[]>(
     routine?.tasks.map((t) => ({ name: t.name, duration: t.duration })) ?? [],
   );
@@ -41,13 +31,10 @@ export default function RoutineEditor({
 
   const total = tasks.reduce((sum, t) => sum + t.duration, 0);
 
-  function addTask() {
+  function addTaskWith(duration: number) {
     const trimmed = taskName.trim();
-    const duration =
-      Math.max(0, parseInt(taskMin || "0", 10)) * 60 +
-      Math.max(0, parseInt(taskSec || "0", 10));
     if (!trimmed) {
-      setError("Give the task a name.");
+      setError("Give the task a name first.");
       return;
     }
     if (duration <= 0) {
@@ -59,6 +46,13 @@ export default function RoutineEditor({
     setTaskName("");
     setTaskMin("1");
     setTaskSec("0");
+  }
+
+  function addCustomTask() {
+    const duration =
+      Math.max(0, parseInt(taskMin || "0", 10)) * 60 +
+      Math.max(0, parseInt(taskSec || "0", 10));
+    addTaskWith(duration);
   }
 
   function removeTask(index: number) {
@@ -97,8 +91,9 @@ export default function RoutineEditor({
   return (
     <form action={handleSubmit} className="space-y-5">
       {routine?.id && <input type="hidden" name="id" value={routine.id} />}
+      <input type="hidden" name="color" value={themeKey} />
 
-      <section className="card p-5 space-y-5">
+      <section className="card space-y-5 p-5">
         <div className="space-y-1.5">
           <label className="text-faint font-display text-xs font-semibold uppercase tracking-wide">
             Routine name
@@ -112,46 +107,46 @@ export default function RoutineEditor({
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <label className="text-faint font-display text-xs font-semibold uppercase tracking-wide">
-              Time of day (optional)
-            </label>
-            <input
-              name="time_of_day"
-              value={timeOfDay}
-              onChange={(e) => setTimeOfDay(e.target.value)}
-              placeholder="e.g. 7:00 AM"
-              className="field"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-faint font-display text-xs font-semibold uppercase tracking-wide">
-              Color
-            </label>
-            <input type="hidden" name="color" value={color} />
-            <div className="flex flex-wrap gap-2 pt-1">
-              {COLORS.map((c) => (
+        <div className="space-y-2">
+          <label className="text-faint font-display text-xs font-semibold uppercase tracking-wide">
+            Ocean theme
+          </label>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {THEME_LIST.map((t) => {
+              const selected = t.key === themeKey;
+              return (
                 <button
-                  key={c}
+                  key={t.key}
                   type="button"
-                  onClick={() => setColor(c)}
-                  aria-label={`Color ${c}`}
-                  className={`h-7 w-7 rounded-full transition ${
-                    color === c
-                      ? "ring-2 ring-white ring-offset-2 ring-offset-transparent"
-                      : ""
+                  onClick={() => setThemeKey(t.key)}
+                  className={`glass flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition ${
+                    selected ? "ring-2 ring-white/70" : ""
                   }`}
-                  style={{ backgroundColor: c }}
                   data-glass
-                />
-              ))}
-            </div>
+                >
+                  <span
+                    className="h-8 w-8 shrink-0 rounded-full"
+                    style={{
+                      background: `linear-gradient(140deg, ${t.accent}, ${t.accent}99)`,
+                    }}
+                    aria-hidden
+                  />
+                  <span className="min-w-0">
+                    <span className="font-display block text-sm font-semibold text-ink">
+                      {t.name}
+                    </span>
+                    <span className="text-faint block truncate text-xs">
+                      {t.blurb}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section className="card p-5 space-y-3">
+      <section className="card space-y-3 p-5">
         <div className="flex items-center justify-between">
           <label className="font-display text-sm font-semibold text-ink">
             Tasks
@@ -177,32 +172,32 @@ export default function RoutineEditor({
                 <span className="text-soft text-xs tabular-nums">
                   {formatDuration(t.duration)}
                 </span>
-                <div className="flex items-center gap-0.5">
+                <div className="text-faint flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => moveTask(i, -1)}
                     disabled={i === 0}
                     aria-label="Move task up"
-                    className="text-faint px-1 hover:text-ink disabled:opacity-25"
+                    className="p-1 hover:text-ink disabled:opacity-25"
                   >
-                    ▲
+                    <ChevronUp className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => moveTask(i, 1)}
                     disabled={i === tasks.length - 1}
                     aria-label="Move task down"
-                    className="text-faint px-1 hover:text-ink disabled:opacity-25"
+                    className="p-1 hover:text-ink disabled:opacity-25"
                   >
-                    ▼
+                    <ChevronDown className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => removeTask(i)}
                     aria-label="Remove task"
-                    className="text-faint px-1 hover:text-ink"
+                    className="p-1 hover:text-ink"
                   >
-                    ✕
+                    <Close className="h-4 w-4" />
                   </button>
                 </div>
               </li>
@@ -217,12 +212,27 @@ export default function RoutineEditor({
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                addTask();
+                addCustomTask();
               }
             }}
             placeholder="Task name (e.g. Stretch)"
             className="field"
           />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {QUICK_MINUTES.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => addTaskWith(m * 60)}
+                className="btn btn-ghost btn-inline glass"
+                data-glass
+              >
+                {m} min
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5">
               <input
@@ -231,6 +241,7 @@ export default function RoutineEditor({
                 value={taskMin}
                 onChange={(e) => setTaskMin(e.target.value)}
                 className="field w-16 text-center"
+                aria-label="Minutes"
               />
               <span className="text-faint text-xs">min</span>
             </div>
@@ -242,16 +253,17 @@ export default function RoutineEditor({
                 value={taskSec}
                 onChange={(e) => setTaskSec(e.target.value)}
                 className="field w-16 text-center"
+                aria-label="Seconds"
               />
               <span className="text-faint text-xs">sec</span>
             </div>
             <button
               type="button"
-              onClick={addTask}
-              className="btn btn-ghost btn-inline glass ml-auto"
+              onClick={addCustomTask}
+              className="btn btn-inline glass ml-auto"
               data-glass
             >
-              + Add task
+              Add task
             </button>
           </div>
         </div>

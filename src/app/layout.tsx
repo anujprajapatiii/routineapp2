@@ -4,7 +4,7 @@ import "./liquid-glass.css";
 import GlassProvider from "./GlassProvider";
 
 export const metadata: Metadata = {
-  title: "Routinery",
+  title: "Stream",
   description: "Build better routines, one task at a time.",
 };
 
@@ -27,6 +27,7 @@ export default function RootLayout({
       </head>
       <body className="glass-bg">
         <div className="glass-wash" />
+        <div className="glass-texture" />
 
         <button
           className="theme-toggle glass"

@@ -57,14 +57,7 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-sm space-y-7">
       <header className="rise text-center">
-        <span
-          className="glass mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
-          data-glass
-          data-float
-        >
-          ⏱️
-        </span>
-        <div className="eyebrow">Routinery</div>
+        <div className="eyebrow">Stream</div>
         <h1 className="font-display mt-1 text-3xl font-bold tracking-tight text-ink">
           Welcome back
         </h1>

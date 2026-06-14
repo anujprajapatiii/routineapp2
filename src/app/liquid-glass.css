@@ -38,8 +38,8 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);       /* calm decel */
 
   /* themed surfaces (overridden by [data-theme="dark"]) */
-  --bg-fallback: #2fb6df;
-  --bg-grad: radial-gradient(125% 95% at 50% 0%, #6fd2ee 0%, #2fb6df 42%, #1f93c4 100%);
+  --bg-fallback: #1f7ea6;
+  --bg-grad: radial-gradient(125% 95% at 50% 0%, #3a9cc2 0%, #1f86b0 44%, #135e82 100%);
   --wash-grad: radial-gradient(120% 90% at 50% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0) 55%);
   --card-bg: linear-gradient(160deg, rgba(255,255,255,0.5), rgba(222,244,255,0.34));
   --card-gloss: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 32%);
@@ -48,10 +48,10 @@
   --field-bg: rgba(255,255,255,0.4);
   --field-bg-focus: rgba(255,255,255,0.6);
   --field-line: rgba(255,255,255,0.6);
-  --accent: #0a6fa0;
-  --btn-bg: rgba(24, 124, 218, 0.40);
-  --btn-bg-hover: rgba(28, 134, 230, 0.52);
-  --btn-ghost-col: #0a5f88;
+  --accent: #0a4f7a;
+  --btn-bg: rgba(11, 64, 117, 0.62);
+  --btn-bg-hover: rgba(14, 80, 144, 0.74);
+  --btn-ghost-col: #08405e;
 }
 
 /* ---- night theme ---- */
@@ -154,31 +154,6 @@
   opacity: 0.85;
   pointer-events: none;
 }
-/* liquid-glass rim: the edge refracts the backdrop into a faint chromatic
-   fringe — warm on one corner, cool on the opposite — the way light
-   disperses through a thick glass bevel. */
-.glass::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 2.4px;                  /* rim thickness (revealed by the mask) */
-  pointer-events: none;
-  -webkit-backdrop-filter: saturate(240%) hue-rotate(16deg) brightness(1.12);
-          backdrop-filter: saturate(240%) hue-rotate(16deg) brightness(1.12);
-  background:
-    linear-gradient(135deg, rgba(255,150,190,0.62), rgba(255,255,255,0) 44%),
-    linear-gradient(315deg, rgba(150,205,255,0.62), rgba(255,255,255,0) 44%),
-    linear-gradient(45deg, rgba(180,255,225,0.30), rgba(255,255,255,0) 40%);
-  /* reveal only the border ring (full box minus the inner content box) */
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          mask-composite: exclude;
-  mix-blend-mode: screen;
-  filter: blur(0.6px);             /* diffuse the chromatic edge */
-  opacity: 1;
-}
 .glass:hover {
   background: var(--glass-bg-hover);
   box-shadow:
@@ -188,7 +163,6 @@
     0 16px 38px rgba(var(--sh), 0.30),
     0 0 34px -2px rgba(255,255,255,0.30);
 }
-.glass:hover::after { opacity: 1; }   /* edge dispersion brightens on hover */
 
 /* radius helpers for glass tiles */
 .glass.r-sm { border-radius: var(--radius-sm); }
