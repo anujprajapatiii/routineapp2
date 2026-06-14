@@ -26,6 +26,11 @@ completion screen). All data is scoped per-user with Postgres Row Level Security
   countdown ring, an overall progress bar, and Pause / Skip / Restart / Stop
   controls, ending on a "complete" screen.
 - Row Level Security: a user can only see and modify their own routines/tasks.
+- **Liquid Glass UI** — frosted-glass surfaces with springy drag/tilt physics and
+  a persistent light/dark theme toggle (top-right). The kit lives in
+  `src/app/liquid-glass.css` + `src/lib/liquid-glass.js`, wired up via
+  `src/app/GlassProvider.tsx`. Visual classes (`.card`, `.glass`, `.field`,
+  `.btn`) skin the UI; the `data-glass` attribute adds physics to leaf controls.
 
 ---
 

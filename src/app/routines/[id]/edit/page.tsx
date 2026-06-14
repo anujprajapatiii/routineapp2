@@ -31,11 +31,13 @@ export default async function EditRoutinePage({
     <main className="mx-auto max-w-2xl px-4 pb-24 pt-8">
       <Link
         href="/routines"
-        className="mb-4 inline-block text-sm text-zinc-400 transition hover:text-zinc-200"
+        className="text-soft mb-4 inline-block text-sm transition hover:text-ink"
       >
         ← Back
       </Link>
-      <h1 className="mb-6 text-2xl font-bold tracking-tight">Edit routine</h1>
+      <h1 className="font-display mb-6 text-3xl font-bold tracking-tight text-ink">
+        Edit routine
+      </h1>
       <RoutineEditor routine={routine} />
     </main>
   );

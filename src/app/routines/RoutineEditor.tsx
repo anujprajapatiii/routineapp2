@@ -84,8 +84,6 @@ export default function RoutineEditor({
     try {
       await saveRoutine(formData);
     } catch (e) {
-      // redirect() throws a special error we should let bubble (handled by Next),
-      // but a real failure shows here.
       const msg = e instanceof Error ? e.message : "Something went wrong.";
       if (!msg.includes("NEXT_REDIRECT")) {
         setError(msg);
@@ -95,57 +93,68 @@ export default function RoutineEditor({
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form action={handleSubmit} className="space-y-5">
       {routine?.id && <input type="hidden" name="id" value={routine.id} />}
 
-      <div className="space-y-1">
-        <label className="text-xs font-medium text-zinc-400">Routine name</label>
-        <input
-          name="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Morning routine"
-          className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none ring-indigo-500/40 placeholder:text-zinc-600 focus:ring-2"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-zinc-400">
-            Time of day (optional)
+      <section className="card p-5 space-y-5">
+        <div className="space-y-1.5">
+          <label className="text-faint font-display text-xs font-semibold uppercase tracking-wide">
+            Routine name
           </label>
           <input
-            name="time_of_day"
-            value={timeOfDay}
-            onChange={(e) => setTimeOfDay(e.target.value)}
-            placeholder="e.g. 7:00 AM"
-            className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none ring-indigo-500/40 placeholder:text-zinc-600 focus:ring-2"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Morning routine"
+            className="field"
           />
         </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-zinc-400">Color</label>
-          <input type="hidden" name="color" value={color} />
-          <div className="flex flex-wrap gap-2 pt-1.5">
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                aria-label={`Color ${c}`}
-                className={`h-7 w-7 rounded-full transition ${
-                  color === c ? "ring-2 ring-white ring-offset-2 ring-offset-bg" : ""
-                }`}
-                style={{ backgroundColor: c }}
-              />
-            ))}
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <label className="text-faint font-display text-xs font-semibold uppercase tracking-wide">
+              Time of day (optional)
+            </label>
+            <input
+              name="time_of_day"
+              value={timeOfDay}
+              onChange={(e) => setTimeOfDay(e.target.value)}
+              placeholder="e.g. 7:00 AM"
+              className="field"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-faint font-display text-xs font-semibold uppercase tracking-wide">
+              Color
+            </label>
+            <input type="hidden" name="color" value={color} />
+            <div className="flex flex-wrap gap-2 pt-1">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  aria-label={`Color ${c}`}
+                  className={`h-7 w-7 rounded-full transition ${
+                    color === c
+                      ? "ring-2 ring-white ring-offset-2 ring-offset-transparent"
+                      : ""
+                  }`}
+                  style={{ backgroundColor: c }}
+                  data-glass
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="space-y-3">
+      <section className="card p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold">Tasks</label>
-          <span className="text-xs text-zinc-500">
+          <label className="font-display text-sm font-semibold text-ink">
+            Tasks
+          </label>
+          <span className="text-faint text-xs">
             {tasks.length} · {formatDuration(total)} total
           </span>
         </div>
@@ -155,13 +164,15 @@ export default function RoutineEditor({
             {tasks.map((t, i) => (
               <li
                 key={i}
-                className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2"
+                className="glass flex items-center gap-2 rounded-2xl px-3 py-2.5"
               >
-                <span className="text-xs tabular-nums text-zinc-600">
+                <span className="text-faint w-4 text-xs tabular-nums">
                   {i + 1}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm">{t.name}</span>
-                <span className="text-xs tabular-nums text-zinc-400">
+                <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                  {t.name}
+                </span>
+                <span className="text-soft text-xs tabular-nums">
                   {formatDuration(t.duration)}
                 </span>
                 <div className="flex items-center gap-0.5">
@@ -170,7 +181,7 @@ export default function RoutineEditor({
                     onClick={() => moveTask(i, -1)}
                     disabled={i === 0}
                     aria-label="Move task up"
-                    className="px-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-20"
+                    className="text-faint px-1 hover:text-ink disabled:opacity-25"
                   >
                     ▲
                   </button>
@@ -179,7 +190,7 @@ export default function RoutineEditor({
                     onClick={() => moveTask(i, 1)}
                     disabled={i === tasks.length - 1}
                     aria-label="Move task down"
-                    className="px-1 text-zinc-500 hover:text-zinc-200 disabled:opacity-20"
+                    className="text-faint px-1 hover:text-ink disabled:opacity-25"
                   >
                     ▼
                   </button>
@@ -187,7 +198,7 @@ export default function RoutineEditor({
                     type="button"
                     onClick={() => removeTask(i)}
                     aria-label="Remove task"
-                    className="px-1 text-zinc-500 hover:text-red-400"
+                    className="text-faint px-1 hover:text-ink"
                   >
                     ✕
                   </button>
@@ -197,7 +208,7 @@ export default function RoutineEditor({
           </ul>
         )}
 
-        <div className="rounded-lg border border-dashed border-border bg-surface/40 p-3">
+        <div className="space-y-2.5 pt-1">
           <input
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
@@ -208,59 +219,57 @@ export default function RoutineEditor({
               }
             }}
             placeholder="Task name (e.g. Stretch)"
-            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none ring-indigo-500/40 placeholder:text-zinc-600 focus:ring-2"
+            className="field"
           />
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <input
                 type="number"
                 min={0}
                 value={taskMin}
                 onChange={(e) => setTaskMin(e.target.value)}
-                className="w-16 rounded-lg border border-border bg-surface px-2 py-2 text-center text-sm outline-none ring-indigo-500/40 focus:ring-2"
+                className="field w-16 text-center"
               />
-              <span className="text-xs text-zinc-500">min</span>
+              <span className="text-faint text-xs">min</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <input
                 type="number"
                 min={0}
                 max={59}
                 value={taskSec}
                 onChange={(e) => setTaskSec(e.target.value)}
-                className="w-16 rounded-lg border border-border bg-surface px-2 py-2 text-center text-sm outline-none ring-indigo-500/40 focus:ring-2"
+                className="field w-16 text-center"
               />
-              <span className="text-xs text-zinc-500">sec</span>
+              <span className="text-faint text-xs">sec</span>
             </div>
             <button
               type="button"
               onClick={addTask}
-              className="ml-auto rounded-lg bg-surface-2 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:bg-border"
+              className="btn btn-ghost btn-inline glass ml-auto"
+              data-glass
             >
               + Add task
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
       {error && (
-        <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="glass rounded-2xl px-3.5 py-2.5 text-sm text-ink">
           {error}
         </p>
       )}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-lg bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400 disabled:opacity-50"
-        >
+        <button type="submit" disabled={saving} className="btn glass" data-glass>
           {saving ? "Saving…" : routine?.id ? "Save changes" : "Create routine"}
         </button>
         <button
           type="button"
           onClick={() => router.push("/routines")}
-          className="rounded-lg border border-border bg-surface px-5 py-2.5 text-sm text-zinc-300 transition hover:bg-surface-2"
+          className="btn btn-ghost glass"
+          data-glass
         >
           Cancel
         </button>

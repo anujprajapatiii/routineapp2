@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import GlassKit from "@/lib/liquid-glass";
 import { formatClock, formatDuration } from "@/lib/format";
 import type { RoutineWithTasks } from "@/lib/types";
 
@@ -35,13 +36,7 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
   useEffect(() => {
     if (!running || done) return;
     intervalRef.current = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          // Advance on next tick to keep state updates clean.
-          return 0;
-        }
-        return r - 1;
-      });
+      setRemaining((r) => (r <= 1 ? 0 : r - 1));
     }, 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -56,6 +51,11 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
     }
   }, [remaining, running, done, index, goToTask]);
 
+  // Re-wire glass physics when the view changes (e.g. the completion screen).
+  useEffect(() => {
+    GlassKit.init(document);
+  }, [done]);
+
   const totalSeconds = tasks.reduce((s, t) => s + t.duration, 0);
   const elapsedBefore = tasks
     .slice(0, index)
@@ -68,12 +68,19 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
     ? ((current.duration - remaining) / current.duration) * 100
     : 0;
 
+  const tint = `radial-gradient(120% 90% at 50% 0%, ${routine.color}40 0%, transparent 58%)`;
+
   if (done) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div
+        className="flex min-h-screen flex-col items-center justify-center px-6 text-center"
+        style={{ background: tint }}
+      >
         <div className="mb-4 text-6xl">🎉</div>
-        <h1 className="text-3xl font-bold">Routine complete!</h1>
-        <p className="mt-2 text-zinc-400">
+        <h1 className="font-display text-3xl font-bold text-ink">
+          Routine complete!
+        </h1>
+        <p className="text-soft mt-2">
           You finished “{routine.name}” — {tasks.length}{" "}
           {tasks.length === 1 ? "task" : "tasks"},{" "}
           {formatDuration(totalSeconds)}.
@@ -86,13 +93,15 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
               setRemaining(tasks[0]?.duration ?? 0);
               setRunning(true);
             }}
-            className="rounded-lg bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400"
+            className="btn btn-inline glass inline-flex"
+            data-glass
           >
             ↻ Run again
           </button>
           <Link
             href="/routines"
-            className="rounded-lg border border-border bg-surface px-5 py-2.5 text-sm text-zinc-300 transition hover:bg-surface-2"
+            className="btn btn-ghost btn-inline glass inline-flex"
+            data-glass
           >
             Done
           </Link>
@@ -104,26 +113,27 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
   return (
     <div
       className="flex min-h-screen flex-col px-6 py-8"
-      style={{
-        background: `radial-gradient(120% 90% at 50% 0%, ${routine.color}22 0%, #0b0b0f 55%)`,
-      }}
+      style={{ background: tint }}
     >
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => router.push("/routines")}
-          className="text-sm text-zinc-400 transition hover:text-zinc-200"
+          className="text-soft text-sm transition hover:text-ink"
         >
           ✕ Stop
         </button>
-        <span className="text-sm font-medium text-zinc-400">
+        <span className="text-soft text-sm font-medium">
           {index + 1} / {tasks.length}
         </span>
       </div>
 
       {/* Overall progress */}
       <div className="mt-4">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-surface-2">
+        <div
+          className="h-1.5 w-full overflow-hidden rounded-full"
+          style={{ background: "var(--glass-bg)" }}
+        >
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{ width: `${overallPct}%`, backgroundColor: routine.color }}
@@ -133,10 +143,10 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
 
       {/* Main timer */}
       <div className="flex flex-1 flex-col items-center justify-center">
-        <p className="mb-2 text-sm uppercase tracking-widest text-zinc-500">
+        <p className="text-faint mb-2 text-sm uppercase tracking-widest">
           {routine.name}
         </p>
-        <h1 className="mb-8 max-w-md text-center text-3xl font-bold">
+        <h1 className="font-display mb-8 max-w-md text-center text-3xl font-bold text-ink">
           {current?.name}
         </h1>
 
@@ -147,7 +157,7 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
               cy="50"
               r="45"
               fill="none"
-              stroke="#1f1f29"
+              stroke="rgba(128,128,128,0.22)"
               strokeWidth="6"
             />
             <circle
@@ -163,13 +173,13 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
               style={{ transition: "stroke-dashoffset 0.3s linear" }}
             />
           </svg>
-          <span className="absolute text-5xl font-bold tabular-nums">
+          <span className="font-display absolute text-5xl font-bold tabular-nums text-ink">
             {formatClock(remaining)}
           </span>
         </div>
 
         {tasks[index + 1] && (
-          <p className="mt-8 text-sm text-zinc-500">
+          <p className="text-faint mt-8 text-sm">
             Up next: {tasks[index + 1].name}
           </p>
         )}
@@ -178,27 +188,27 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
       {/* Controls */}
       <div className="flex items-center justify-center gap-4 pb-6">
         <button
-          onClick={() => {
-            // Restart current task.
-            setRemaining(current?.duration ?? 0);
-          }}
-          className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface text-lg text-zinc-300 transition hover:bg-surface-2"
+          onClick={() => setRemaining(current?.duration ?? 0)}
+          className="glass glass-icon h-14 w-14 text-lg"
           aria-label="Restart task"
+          data-glass
         >
           ↺
         </button>
         <button
           onClick={() => setRunning((r) => !r)}
-          className="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold text-white shadow-lg transition hover:opacity-90"
+          className="glass flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold text-white"
           style={{ backgroundColor: routine.color }}
           aria-label={running ? "Pause" : "Resume"}
+          data-glass
         >
           {running ? "❚❚" : "▶"}
         </button>
         <button
           onClick={() => goToTask(index + 1)}
-          className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface text-lg text-zinc-300 transition hover:bg-surface-2"
+          className="glass glass-icon h-14 w-14 text-lg"
           aria-label="Skip task"
+          data-glass
         >
           ⏭
         </button>

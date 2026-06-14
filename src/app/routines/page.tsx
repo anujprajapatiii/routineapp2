@@ -26,71 +26,71 @@ export default async function RoutinesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 pb-24 pt-8">
-      <header className="mb-8 flex items-center justify-between">
+    <main className="mx-auto max-w-2xl px-4 pb-28 pt-8">
+      <header className="rise mb-8 flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">My Routines</h1>
-          <p className="text-sm text-zinc-400">{user.email}</p>
+          <div className="eyebrow">Routinery</div>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-ink">
+            My Routines
+          </h1>
+          <p className="text-faint mt-0.5 text-sm">{user.email}</p>
         </div>
         <form action="/auth/signout" method="post">
-          <button
-            type="submit"
-            className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-surface-2"
-          >
+          <button type="submit" className="btn btn-ghost btn-inline glass" data-glass>
             Log out
           </button>
         </form>
       </header>
 
       {routines.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-10 text-center">
-          <div className="mb-2 text-4xl">🌅</div>
-          <h2 className="text-lg font-semibold">No routines yet</h2>
-          <p className="mx-auto mt-1 max-w-xs text-sm text-zinc-400">
+        <div className="card rise p-10 text-center">
+          <div className="mb-2 text-5xl">🌅</div>
+          <h2 className="font-display text-lg font-semibold text-ink">
+            No routines yet
+          </h2>
+          <p className="text-soft mx-auto mt-1.5 max-w-xs text-sm">
             Create your first routine — a sequence of timed tasks you want to do
             on repeat.
           </p>
           <Link
             href="/routines/new"
-            className="mt-5 inline-block rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400"
+            className="btn btn-inline glass mt-6 inline-flex"
+            data-glass
           >
             + New routine
           </Link>
         </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-3.5">
           {routines.map((routine, index) => {
             const total = routine.tasks.reduce((sum, t) => sum + t.duration, 0);
             return (
-              <li
-                key={routine.id}
-                className="group rounded-2xl border border-border bg-surface p-4"
-              >
+              <li key={routine.id} className="card rise p-4">
                 <div className="flex items-start gap-3">
                   <span
-                    className="mt-1 h-10 w-1.5 shrink-0 rounded-full"
+                    className="mt-1 h-11 w-1.5 shrink-0 rounded-full"
                     style={{ backgroundColor: routine.color }}
                     aria-hidden
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="truncate text-base font-semibold">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-display truncate text-base font-semibold text-ink">
                         {routine.name}
                       </h3>
                       {routine.time_of_day && (
-                        <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-zinc-400">
+                        <span className="glass text-soft rounded-full px-2.5 py-0.5 text-xs">
                           {routine.time_of_day}
                         </span>
                       )}
                     </div>
-                    <p className="mt-0.5 text-sm text-zinc-400">
+                    <p className="text-faint mt-0.5 text-sm">
                       {routine.tasks.length}{" "}
                       {routine.tasks.length === 1 ? "task" : "tasks"} ·{" "}
                       {formatDuration(total)}
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1.5">
                     <form action={moveRoutine}>
                       <input type="hidden" name="id" value={routine.id} />
                       <input type="hidden" name="direction" value="up" />
@@ -98,7 +98,8 @@ export default async function RoutinesPage() {
                         type="submit"
                         disabled={index === 0}
                         aria-label="Move up"
-                        className="rounded px-1.5 text-zinc-500 transition hover:text-zinc-200 disabled:opacity-20"
+                        className="glass glass-icon h-7 w-7 text-xs disabled:opacity-25"
+                        data-glass
                       >
                         ▲
                       </button>
@@ -110,7 +111,8 @@ export default async function RoutinesPage() {
                         type="submit"
                         disabled={index === routines.length - 1}
                         aria-label="Move down"
-                        className="rounded px-1.5 text-zinc-500 transition hover:text-zinc-200 disabled:opacity-20"
+                        className="glass glass-icon h-7 w-7 text-xs disabled:opacity-25"
+                        data-glass
                       >
                         ▼
                       </button>
@@ -118,32 +120,31 @@ export default async function RoutinesPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+                <div className="mt-3.5 flex flex-wrap items-center gap-2">
                   <Link
                     href={`/routines/${routine.id}/run`}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold text-white transition ${
+                    className={`btn btn-inline glass inline-flex ${
                       routine.tasks.length === 0
-                        ? "pointer-events-none bg-surface-2 text-zinc-500"
-                        : "bg-indigo-500 hover:bg-indigo-400"
+                        ? "pointer-events-none opacity-50"
+                        : ""
                     }`}
+                    data-glass
                     aria-disabled={routine.tasks.length === 0}
                   >
                     ▶ Start
                   </Link>
                   <Link
                     href={`/routines/${routine.id}/edit`}
-                    className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-surface-2"
+                    className="btn btn-ghost btn-inline glass inline-flex"
+                    data-glass
                   >
                     Edit
                   </Link>
-                  <form
-                    action={deleteRoutine}
-                    className="ml-auto"
-                  >
+                  <form action={deleteRoutine} className="ml-auto">
                     <input type="hidden" name="id" value={routine.id} />
                     <button
                       type="submit"
-                      className="rounded-lg px-3 py-1.5 text-sm text-zinc-500 transition hover:text-red-400"
+                      className="text-faint px-2 py-1 text-sm transition hover:text-ink"
                     >
                       Delete
                     </button>
@@ -157,7 +158,9 @@ export default async function RoutinesPage() {
 
       <Link
         href="/routines/new"
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 transition hover:bg-indigo-400"
+        className="btn glass r-pill fixed bottom-6 left-1/2 inline-flex w-auto -translate-x-1/2 px-7"
+        data-glass
+        data-float
       >
         + New routine
       </Link>

@@ -1,0 +1,318 @@
+/* =====================================================================
+   Liquid Glass UI Kit  ·  v1.0
+   The "sauce" from Nudge — frosted glass surfaces, chromatic rims,
+   springy drag/tilt physics, idle float, and day/night theming.
+   No WebGL, no build step, no dependencies.
+
+   Pair with liquid-glass.js for the interactive physics.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. Design tokens
+   Override these on :root in your own stylesheet to re-skin the kit.
+   --------------------------------------------------------------------- */
+:root {
+  /* Swap in your own font; the kit ships with graceful fallbacks.
+     To use Nudge's font, add an @font-face for 'Averia Sans Libre'. */
+  --font-display: 'Averia Sans Libre', ui-rounded, 'SF Pro Rounded',
+    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* ink = text colours */
+  --ink: #073b54;
+  --ink-soft: #1d5e7e;
+  --ink-faint: #4a87a3;
+
+  /* glass tuning */
+  --glass-line: rgba(255, 255, 255, 0.55);   /* hairline borders */
+  --glass-hi: rgba(255, 255, 255, 0.7);      /* inner top highlight */
+  --sh: 12, 124, 178;                         /* shadow tint — use rgba(var(--sh), a) */
+
+  /* shape */
+  --radius-lg: 30px;
+  --radius-md: 20px;
+  --radius-sm: 16px;
+  --radius-pill: 999px;
+
+  /* motion */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);  /* overshoots, then settles */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);       /* calm decel */
+
+  /* themed surfaces (overridden by [data-theme="dark"]) */
+  --bg-fallback: #2fb6df;
+  --bg-grad: radial-gradient(125% 95% at 50% 0%, #6fd2ee 0%, #2fb6df 42%, #1f93c4 100%);
+  --wash-grad: radial-gradient(120% 90% at 50% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0) 55%);
+  --card-bg: linear-gradient(160deg, rgba(255,255,255,0.5), rgba(222,244,255,0.34));
+  --card-gloss: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 32%);
+  --glass-bg: rgba(255,255,255,0.16);
+  --glass-bg-hover: rgba(255,255,255,0.26);
+  --field-bg: rgba(255,255,255,0.4);
+  --field-bg-focus: rgba(255,255,255,0.6);
+  --field-line: rgba(255,255,255,0.6);
+  --accent: #0a6fa0;
+  --btn-bg: rgba(24, 124, 218, 0.40);
+  --btn-bg-hover: rgba(28, 134, 230, 0.52);
+  --btn-ghost-col: #0a5f88;
+}
+
+/* ---- night theme ---- */
+:root[data-theme="dark"] {
+  --ink: #e6f1fb;
+  --ink-soft: #a9cde4;
+  --ink-faint: #6f9db8;
+  --glass-line: rgba(255, 255, 255, 0.16);
+  --glass-hi: rgba(255, 255, 255, 0.35);
+  --sh: 0, 8, 20;
+  --bg-fallback: #081521;
+  --bg-grad: radial-gradient(125% 95% at 50% 0%, #143247 0%, #0c2030 45%, #081521 100%);
+  --wash-grad: radial-gradient(120% 90% at 50% 16%, rgba(150,200,255,0.10), rgba(255,255,255,0) 55%);
+  --card-bg: linear-gradient(160deg, rgba(34,58,82,0.55), rgba(13,27,43,0.42));
+  --card-gloss: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 32%);
+  --glass-bg: rgba(255,255,255,0.07);
+  --glass-bg-hover: rgba(255,255,255,0.13);
+  --field-bg: rgba(255,255,255,0.06);
+  --field-bg-focus: rgba(255,255,255,0.12);
+  --field-line: rgba(255,255,255,0.18);
+  --accent: #5fb8e8;
+  --btn-bg: rgba(40, 120, 210, 0.45);
+  --btn-bg-hover: rgba(56, 140, 230, 0.60);
+  --btn-ghost-col: #8fc2e0;
+}
+
+/* ---------------------------------------------------------------------
+   2. Backdrop utilities (optional — opt in by adding the classes)
+   .glass-bg   → put on <body> for the themed gradient backdrop
+   .glass-wash → a soft brightening wash; place as a fixed full-screen div
+   --------------------------------------------------------------------- */
+.glass-bg {
+  background: var(--bg-fallback);
+  background-image: var(--bg-grad);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.5s var(--ease);
+}
+.glass-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--wash-grad);
+}
+
+/* ---------------------------------------------------------------------
+   3. Card — a large frosted container
+   --------------------------------------------------------------------- */
+.card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  border: 0.5px solid var(--glass-line);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    0 18px 48px rgba(var(--sh), 0.22);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+}
+.card::after {                 /* fine top gloss, clipped to the radius */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--card-gloss);
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------
+   4. Glass — interactive liquid-glass surface (iOS-style, restrained)
+   Add `data-glass` (or call GlassKit.makeInteractive) for the physics.
+   Transforms are driven by JS so they never fight these styles.
+   --------------------------------------------------------------------- */
+.glass {
+  position: relative;
+  border: 0.5px solid var(--glass-line);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  box-shadow:
+    inset 0 0.5px 0.5px var(--glass-hi),                /* crisp top edge */
+    inset 0 9px 16px -12px rgba(255,255,255,0.55),       /* light pooling under the rim */
+    inset 0 -10px 16px -12px rgba(var(--sh), 0.28),      /* shadow gathering at the base */
+    0 2px 10px rgba(var(--sh), 0.14);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.4s var(--spring), background 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.glass::before {               /* hairline top highlight */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 45%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+/* liquid-glass rim: the edge refracts the backdrop into a faint chromatic
+   fringe — warm on one corner, cool on the opposite — the way light
+   disperses through a thick glass bevel. */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.6px;                  /* rim thickness (revealed by the mask) */
+  pointer-events: none;
+  -webkit-backdrop-filter: saturate(220%) hue-rotate(16deg) brightness(1.05);
+          backdrop-filter: saturate(220%) hue-rotate(16deg) brightness(1.05);
+  background:
+    linear-gradient(135deg, rgba(255,150,190,0.45), rgba(255,255,255,0) 26%),
+    linear-gradient(315deg, rgba(150,205,255,0.45), rgba(255,255,255,0) 26%);
+  /* reveal only the border ring (full box minus the inner content box) */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+.glass:hover {
+  background: var(--glass-bg-hover);
+  box-shadow:
+    inset 0 0.5px 0.5px var(--glass-hi),
+    inset 0 9px 16px -12px rgba(255,255,255,0.6),
+    inset 0 -10px 16px -12px rgba(var(--sh), 0.30),
+    0 10px 26px rgba(var(--sh), 0.24);
+}
+.glass:hover::after { opacity: 1; }   /* edge dispersion brightens on hover */
+
+/* radius helpers for glass tiles */
+.glass.r-sm { border-radius: var(--radius-sm); }
+.glass.r-md { border-radius: var(--radius-md); }
+.glass.r-lg { border-radius: var(--radius-lg); }
+.glass.r-pill { border-radius: var(--radius-pill); }
+
+/* ---------------------------------------------------------------------
+   5. Idle float — gentle, never-quite-repeating drift
+   The per-element vars (--fx, --fy, --fr, --fd, --ft, --fdx, --fdr) are
+   randomised by GlassKit.makeFloat so no two elements drift in sync.
+   Uses translate/rotate props (not transform) so JS transforms compose.
+   --------------------------------------------------------------------- */
+.floating {
+  animation:
+    floatDrift var(--fd, 7s) ease-in-out var(--fdx, 0s) infinite,
+    floatTilt  var(--ft, 9s) ease-in-out var(--fdr, 0s) infinite;
+}
+@keyframes floatDrift {
+  0%   { translate: 0 0; }
+  25%  { translate: var(--fx, 4px) calc(var(--fy, 5px) * -0.7); }
+  50%  { translate: calc(var(--fx, 4px) * -0.5) var(--fy, 5px); }
+  75%  { translate: calc(var(--fx, 4px) * 0.35) calc(var(--fy, 5px) * -0.35); }
+  100% { translate: 0 0; }
+}
+@keyframes floatTilt {
+  0%, 100% { rotate: calc(var(--fr, 1deg) * -1); }
+  50%      { rotate: var(--fr, 1deg); }
+}
+
+/* ---------------------------------------------------------------------
+   6. Buttons
+   --------------------------------------------------------------------- */
+.btn {
+  width: 100%;
+  border-radius: var(--radius-md);
+  padding: 17px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.01em;
+  color: #fff;
+  touch-action: none;          /* let pointer-drag work without scrolling */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.btn:not(.btn-ghost) {
+  background: var(--btn-bg);
+  border-color: var(--glass-line);
+}
+.btn:not(.btn-ghost):hover { background: var(--btn-bg-hover); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+.btn-ghost { color: var(--btn-ghost-col); }
+
+.btn-row { display: flex; gap: 12px; }
+.btn-row .btn { flex: 1; }
+
+/* ---------------------------------------------------------------------
+   7. Fields
+   --------------------------------------------------------------------- */
+.field {
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: 16px;             /* >=16px stops iOS zoom on focus */
+  color: var(--ink);
+  border: 0.5px solid var(--field-line);
+  background: var(--field-bg);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  box-shadow: inset 0 2px 6px rgba(var(--sh), 0.12);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s;
+}
+.field:focus {
+  outline: none;
+  border-color: #4fc3f7;
+  background: var(--field-bg-focus);
+  box-shadow: inset 0 2px 6px rgba(var(--sh), 0.10), 0 0 0 4px rgba(79,195,247,0.3);
+}
+.field::placeholder { color: var(--ink-faint); }
+textarea.field { resize: none; line-height: 1.4; }
+
+/* ---------------------------------------------------------------------
+   8. Floating theme toggle
+   --------------------------------------------------------------------- */
+.theme-toggle {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.25s var(--ease), box-shadow 0.25s var(--ease), color 0.5s var(--ease);
+}
+.theme-toggle svg { width: 21px; height: 21px; display: block; }
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+
+/* ---------------------------------------------------------------------
+   9. Typography & entrance helpers (optional)
+   --------------------------------------------------------------------- */
+.eyebrow {
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+.rise { animation: rise 0.5s var(--ease) both; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pop { animation: pop 0.6s var(--spring) both; }
+@keyframes pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ---------------------------------------------------------------------
+   10. Reduced motion — hold everything still
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  .floating { animation: none; translate: none; rotate: none; }
+}

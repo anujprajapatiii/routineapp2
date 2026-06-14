@@ -2,19 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
-
 html,
 body {
   height: 100%;
 }
 
-body {
-  @apply bg-bg text-zinc-100 antialiased;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
+/* Liquid Glass text-color helpers, mapped to the kit's ink tokens. */
+@layer utilities {
+  .text-ink {
+    color: var(--ink);
+  }
+  .text-soft {
+    color: var(--ink-soft);
+  }
+  .text-faint {
+    color: var(--ink-faint);
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* The kit's .btn is full-width and large; this composes with .btn for the
+   app's compact inline action rows (Edit / Delete / reorder, etc.). */
+@layer components {
+  .btn-inline {
+    width: auto;
+    padding: 9px 15px;
+    font-size: 14px;
+    border-radius: var(--radius-sm);
+  }
+  /* A small square glass control (reorder arrows, runner controls). */
+  .glass-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    border-radius: var(--radius-sm);
+  }
 }
 
 /* Hide number input spinners */

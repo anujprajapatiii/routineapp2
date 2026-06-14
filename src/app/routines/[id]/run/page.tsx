@@ -30,10 +30,13 @@ export default async function RunRoutinePage({
   if (routine.tasks.length === 0) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-        <h1 className="text-xl font-semibold">This routine has no tasks yet.</h1>
+        <h1 className="font-display text-xl font-semibold text-ink">
+          This routine has no tasks yet.
+        </h1>
         <Link
           href={`/routines/${routine.id}/edit`}
-          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400"
+          className="btn btn-inline glass inline-flex"
+          data-glass
         >
           Add tasks
         </Link>
