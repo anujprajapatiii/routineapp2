@@ -27,69 +27,48 @@
   'use strict';
 
   const STORAGE_KEY = 'glasskit-theme';
-  const TAP = 8;                 // px of movement that turns a tap into a drag
   const rnd = (a, b) => a + Math.random() * (b - a);
 
   /* -------------------------------------------------------------------
      makeInteractive(el)
-     Every element gets: 3D tilt on hover, a squishy fling on drag that
-     springs back, a press-dip on tap. A real drag (>TAP px) cancels the
-     click that follows, so an element's onclick only fires on a true tap.
+     Restrained, click-safe feedback: 3D tilt that follows the cursor on
+     hover, a press-dip on pointer-down, and a springy wobble back to rest
+     on release. No drag/fling and no pointer-capture, so clicks, links,
+     and form submits always fire normally.
      ------------------------------------------------------------------- */
   function makeInteractive(el) {
     if (el._glassInteractive) return el;
     el._glassInteractive = true;
 
-    let drag = null;
+    let pressed = false;
     const fast = 'transform 0.12s ease, background 0.25s, box-shadow 0.25s';
     const spring = 'transform 0.6s var(--spring), background 0.25s, box-shadow 0.25s';
 
-    el.addEventListener('pointerenter', () => { if (!drag) el.style.transition = fast; });
-
-    el.addEventListener('pointerdown', (e) => {
-      drag = { x: e.clientX, y: e.clientY, moved: 0 };
-      el._noClick = false;                  // clear stale suppression from a prior drag
-      el.setPointerCapture(e.pointerId);
-      el.style.transition = 'none';
-      el.style.zIndex = '5';
-      el.style.transform = 'scale(0.96)';   // press dip until a drag begins
-    });
+    el.addEventListener('pointerenter', () => { el.style.transition = fast; });
 
     el.addEventListener('pointermove', (e) => {
+      if (pressed) return;                       // hold the press-dip while pressed
       const r = el.getBoundingClientRect();
-      if (drag) {
-        const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-        drag.moved = Math.max(drag.moved, Math.hypot(dx, dy));
-        const stretch = Math.min(drag.moved / 220, 0.18);
-        el.style.transform =
-          `translate(${dx}px, ${dy}px) rotate(${dx * 0.05}deg) scale(${1.06 + stretch})`;
-      } else {
-        const px = (e.clientX - r.left) / r.width - 0.5;
-        const py = (e.clientY - r.top) / r.height - 0.5;
-        el.style.transform =
-          `perspective(520px) rotateY(${px * 14}deg) rotateX(${-py * 14}deg) translateZ(6px)`;
-      }
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      el.style.transform =
+        `perspective(520px) rotateY(${px * 12}deg) rotateX(${-py * 12}deg) translateZ(6px)`;
     });
 
-    const settle = () => {
-      el.style.transition = spring;
+    el.addEventListener('pointerdown', () => {
+      pressed = true;
+      el.style.transition = fast;
+      el.style.transform = 'scale(0.95)';        // press dip
+    });
+
+    const release = () => {
+      pressed = false;
+      el.style.transition = spring;              // springy wobble back to rest
       el.style.transform = '';
-      setTimeout(() => { el.style.zIndex = ''; }, 600);
     };
-
-    el.addEventListener('pointerup', () => {
-      if (!drag) return;
-      const moved = drag.moved; drag = null;
-      if (moved >= TAP) el._noClick = true;  // it was a drag → swallow the click
-      settle();
-    });
-    el.addEventListener('pointercancel', () => { if (drag) { drag = null; settle(); } });
-    el.addEventListener('pointerleave', () => { if (!drag) settle(); });
-
-    // capture phase: cancel the click that follows a drag, before the action runs
-    el.addEventListener('click', (e) => {
-      if (el._noClick) { e.preventDefault(); e.stopImmediatePropagation(); el._noClick = false; }
-    }, true);
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+    el.addEventListener('pointerleave', release);
 
     return el;
   }

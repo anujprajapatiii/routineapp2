@@ -6,15 +6,17 @@ import { formatDuration } from "@/lib/format";
 import type { RoutineWithTasks } from "@/lib/types";
 import { saveRoutine } from "./actions";
 
+// Higher-contrast, accessible hues — each reads clearly against the glass
+// backdrop in both themes and carries white text on the run/play button.
 const COLORS = [
-  "#6366f1",
-  "#ec4899",
-  "#f59e0b",
-  "#10b981",
-  "#3b82f6",
-  "#ef4444",
-  "#8b5cf6",
-  "#14b8a6",
+  "#4f46e5", // indigo
+  "#db2777", // pink
+  "#ea580c", // orange
+  "#059669", // emerald
+  "#2563eb", // blue
+  "#dc2626", // red
+  "#7c3aed", // violet
+  "#0d9488", // teal
 ];
 
 type DraftTask = { name: string; duration: number };

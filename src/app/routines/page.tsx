@@ -156,14 +156,16 @@ export default async function RoutinesPage() {
         </ul>
       )}
 
-      <Link
-        href="/routines/new"
-        className="btn glass r-pill fixed bottom-6 left-1/2 inline-flex w-auto -translate-x-1/2 px-7"
-        data-glass
-        data-float
-      >
-        + New routine
-      </Link>
+      <div className="pointer-events-none fixed inset-x-0 bottom-6 flex justify-center px-4">
+        <Link
+          href="/routines/new"
+          className="btn glass r-pill pointer-events-auto inline-flex w-auto px-7"
+          data-glass
+          data-float
+        >
+          + New routine
+        </Link>
+      </div>
     </main>
   );
 }
