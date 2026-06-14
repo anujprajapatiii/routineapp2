@@ -57,11 +57,13 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-sm space-y-7">
       <header className="rise text-center">
-        <div className="eyebrow">Stream</div>
-        <h1 className="font-display mt-1 text-3xl font-bold tracking-tight text-ink">
+        <div className="on-bg text-xs font-semibold uppercase tracking-[0.2em]">
+          Stream
+        </div>
+        <h1 className="on-bg font-display mt-1 text-3xl font-bold tracking-tight">
           Welcome back
         </h1>
-        <p className="text-soft mt-1.5 text-base">
+        <p className="on-bg-soft mt-1.5 text-base">
           Build better routines, one task at a time.
         </p>
       </header>

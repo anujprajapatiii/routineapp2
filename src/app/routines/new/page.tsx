@@ -14,11 +14,11 @@ export default async function NewRoutinePage() {
     <main className="mx-auto max-w-2xl px-4 pb-24 pt-8">
       <Link
         href="/routines"
-        className="text-soft mb-4 inline-block text-sm transition hover:text-ink"
+        className="on-bg-soft mb-4 inline-block text-sm transition hover:opacity-80"
       >
         ← Back
       </Link>
-      <h1 className="font-display mb-6 text-3xl font-bold tracking-tight text-ink">
+      <h1 className="on-bg font-display mb-6 text-3xl font-bold tracking-tight">
         New routine
       </h1>
       <RoutineEditor />

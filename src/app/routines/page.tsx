@@ -31,11 +31,13 @@ export default async function RoutinesPage() {
     <main className="mx-auto max-w-2xl px-4 pb-16 pt-8">
       <header className="rise mb-8 flex items-end justify-between gap-3">
         <div>
-          <div className="eyebrow">Stream</div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-ink">
+          <div className="on-bg text-xs font-semibold uppercase tracking-[0.2em]">
+            Stream
+          </div>
+          <h1 className="on-bg font-display text-3xl font-bold tracking-tight">
             My Routines
           </h1>
-          <p className="text-faint mt-0.5 text-sm">{user.email}</p>
+          <p className="on-bg-soft mt-0.5 text-sm">{user.email}</p>
         </div>
         <form action="/auth/signout" method="post">
           <button type="submit" className="btn btn-ghost btn-inline glass" data-glass>

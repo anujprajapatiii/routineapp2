@@ -150,13 +150,11 @@ export default function Runner({ routine }: { routine: RoutineWithTasks }) {
       </div>
 
       {/* Overall progress */}
-      <div className="mt-4">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/15">
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${overallPct}%`, background: ring }}
-          />
-        </div>
+      <div className="mx-auto mt-5 h-1 w-44 max-w-[60%] overflow-hidden rounded-full bg-white/15">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${overallPct}%`, background: ring }}
+        />
       </div>
 
       {/* Main timer */}
